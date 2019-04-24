@@ -154,7 +154,7 @@ def mean_firing_rate(spiketrain, t_start=None, t_stop=None, axis=None):
 cv = scipy.stats.variation
 
 
-def fanofactor(spiketrains):
+def fanofactor(spiketrains, axis=-1):
     """
     Evaluates the empirical Fano factor F of the spike counts of
     a list of `neo.core.SpikeTrain` objects.
@@ -173,25 +173,31 @@ def fanofactor(spiketrains):
     ----------
     spiketrains : list of neo.SpikeTrain objects, quantity arrays, numpy arrays or lists
         Spike trains for which to compute the Fano factor of spike counts.
+    axis : int, optional
+           The axis over which to do the calculation.
+           Default is `None`, do the calculation over the flattened array.
 
     Returns
     -------
     fano : float or nan
         The Fano factor of the spike counts of the input spike trains. If an
         empty list is specified, or if all spike trains are empty, F:=nan.
+        
     """
     # Build array of spike counts (one per spike train)
+    #TODO
     spike_counts = np.array([len(t) for t in spiketrains])
 
     # Compute FF
     if all([count == 0 for count in spike_counts]):
         fano = np.nan
     else:
+        #TODO this is too much
         fano = spike_counts.var() / spike_counts.mean()
     return fano
 
 
-def lv(v, with_nan=False):
+def lv(v, with_nan=False, axis=-1):
     """
     Calculate the measure of local variation LV for
     a sequence of time intervals between events.
@@ -220,6 +226,9 @@ def lv(v, with_nan=False):
         results in a `NaN` value and a warning is raised. 
         If `False`, an value error is raised. 
         Default: `True`
+    axis : int, optional
+           The axis over which to do the calculation.
+           Default is `None`, do the calculation over the flattened array.        
 
     Returns
     -------
@@ -265,10 +274,10 @@ def lv(v, with_nan=False):
 
     # calculate LV and return result
     # raise error if input is multi-dimensional
-    return 3. * np.mean(np.power(np.diff(v) / (v[:-1] + v[1:]), 2))
+    return 3. * np.mean(np.power(np.diff(v, axis=axis) / (v[:-1] + v[1:]), 2, axis=axis), axis=axis)
 
 
-def cv2(v, with_nan=False):
+def cv2(v, with_nan=False, axis=-1):
     """
     Calculate the measure of CV2 for a sequence of time intervals between 
     events.
@@ -297,6 +306,9 @@ def cv2(v, with_nan=False):
         and a warning is raised. 
         If `False`, an attribute error is raised. 
         Default: `True`
+    axis : int, optional
+           The axis over which to do the calculation.
+           Default is `None`, do the calculation over the flattened array.
 
     Returns
     -------
@@ -339,7 +351,8 @@ def cv2(v, with_nan=False):
                                  "value since the argument `with_nan` is `False`")
 
     # calculate CV2 and return result
-    return 2. * np.mean(np.absolute(np.diff(v)) / (v[:-1] + v[1:]))
+    #TODO how to get normalization right??
+    return 2. * np.mean(np.absolute(np.diff(v, axis=axis), axis=axis) / (v[:-1] + v[1:]))
 
 
 # sigma2kw and kw2sigma only needed for oldfct_instantaneous_rate!
